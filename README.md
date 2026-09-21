@@ -1,36 +1,31 @@
-Workfront UIX Extension: Bitly Analytics (Project & Request Level)
-This application is an Adobe Custom UI Extension (UIX) embedded directly into Workfront Projects and Requests. It automatically detects Bitly custom fields on the active record and fetches real-time engagement data for both Shortlinks and QR Codes via the Bitly v4 API.
+# Workfront UI Extension: Bitly Analytics
 
-Core Features
-Context-Aware Tracking: Automatically reads custom fields (DE:Bitly Shortlink ID and DE:Bitly QR Code ID) from the active Workfront Project or Issue using the @adobe/uix-guest SDK.
+An Adobe App Builder custom UI extension (UIX) that embeds real-time Bitly Shortlink and QR Code analytics directly into Adobe Workfront Project and Issue tabs. This application extracts Bitly asset IDs from Workfront custom fields and fetches deep engagement metrics and metadata from the Bitly v4 API.
 
-Intelligent Aggregation: When loaded on a Request, it displays data for that specific record. When loaded on a Project, it searches all child tasks/issues for Bitly fields and aggregates the analytics, with a dropdown to filter by specific records.
+## Features
 
-Asset Details & Metadata: Fetches and displays Bitly asset metadata, including the creation date, Title, Destination/Long URL (hyperlinked), and renders a Base64-encoded PNG image of the QR Code natively inside the Workfront iframe.
+* **Context-Aware Rendering:** Uses `@adobe/uix-guest` to dynamically pull the Workfront `objID`, `objCode`, and `imsToken` from the active user session.
+* **Unified Engagement Dashboard:** Renders interactive Line and Bar charts via `recharts` to track Shortlink clicks and QR Code scans over time.
+* **Granular Analytics:** Aggregates scan and click data by Country, City, Referrer, Browser, and Operating System. Safely processes Bitly's long-tail `other_metrics` to ensure 100% data accuracy.
+* **Rich Asset Details:** Fetches and displays specific Bitly asset metadata, including Creation Date, Destination URL (hyperlinked), Title, Tags, and dynamically renders the Base64 PNG image of the tracked QR Code.
+* **Smart Conditional UI:** Automatically evaluates the presence of Shortlink IDs vs. QR Code IDs and only mounts the relevant React components.
 
-Conditional Rendering: Intelligently hides the Shortlink or QR Code sections if the record only contains one type of asset, ensuring a clean, relevant UI.
+## Prerequisites
 
-Comprehensive Metrics: Visualizes engagements via Recharts, including:
+1. **Adobe I/O CLI (`aio`)** installed and authenticated.
+2. A valid **Bitly API Access Token**.
+3. **Workfront Custom Fields** attached to the target Projects/Issues. The backend recognizes the following keys:
+   * `DE:Bitly Shortlink ID` (or `Bitly Shortlink ID`)
+   * `DE:Bitly QR Code ID` (or `Bitly QR Code ID`)
 
-Engagements over time (Line Charts).
+## Architecture
 
-Geographic distribution (Countries and Cities tables).
+* **Frontend (`web-src/src/components/App.js`):** A React SPA utilizing Recharts for data visualization. Evaluates payloads to render KPIs, asset details, and time-series charts.
+* **Backend (`actions/generic/index.js`):** An Adobe I/O Runtime serverless action. Extracts Workfront custom parameters, calls Bitly endpoints (`/v4/bitlinks/{id}`, `/v4/qr-codes/{id}`, and `/v4/qr-codes/{id}/image`), and chunks API requests to manage concurrency.
 
-Referrer traffic mapping.
+## Deployment
 
-Device and Operating System breakdowns (Bar Charts and tables).
+To deploy this application to your Adobe I/O Runtime environment, ensure your `.env` file is populated with your `BITLY_TOKEN` and run the following command to purge the local Parcel cache and push the build:
 
-Technical Architecture
-Frontend: React, Recharts for data visualization, standard CSS for styling.
-
-Backend: Node.js serverless action deployed to Adobe I/O Runtime. Handles chunked parallel requests to Bitly's API endpoints (/clicks, /scans, /image?format=png, etc.) to bypass rate limits and prevent frontend CORS issues.
-
-Authentication: Utilizes the Workfront user's active IMS token passed via the shared context to securely query the Workfront API for custom field values.
-
-Deployment & Cache Management
-Adobe Workfront heavily caches iframe extensions. To deploy updates and force a fresh build:
-
-Bash
-# Clear Parcel cache and deploy to Adobe I/O
+```bash
 rm -rf dist .parcel-cache && aio app deploy
-Note: Ensure you disable the browser cache via the Network tab in Developer Tools and hard refresh Workfront after deploying to view the latest UI.
