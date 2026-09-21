@@ -1,80 +1,36 @@
-# wfBitlyAnalytics
+Workfront UIX Extension: Bitly Analytics (Project & Request Level)
+This application is an Adobe Custom UI Extension (UIX) embedded directly into Workfront Projects and Requests. It automatically detects Bitly custom fields on the active record and fetches real-time engagement data for both Shortlinks and QR Codes via the Bitly v4 API.
 
-Welcome to my Adobe I/O Application!
+Core Features
+Context-Aware Tracking: Automatically reads custom fields (DE:Bitly Shortlink ID and DE:Bitly QR Code ID) from the active Workfront Project or Issue using the @adobe/uix-guest SDK.
 
-## Setup
+Intelligent Aggregation: When loaded on a Request, it displays data for that specific record. When loaded on a Project, it searches all child tasks/issues for Bitly fields and aggregates the analytics, with a dropdown to filter by specific records.
 
-- Populate the `.env` file in the project root and fill it as shown [below](#env)
+Asset Details & Metadata: Fetches and displays Bitly asset metadata, including the creation date, Title, Destination/Long URL (hyperlinked), and renders a Base64-encoded PNG image of the QR Code natively inside the Workfront iframe.
 
-## Local Dev
+Conditional Rendering: Intelligently hides the Shortlink or QR Code sections if the record only contains one type of asset, ensuring a clean, relevant UI.
 
-- `aio app run` to start your local Dev server
-- App will run on `localhost:9080` by default
+Comprehensive Metrics: Visualizes engagements via Recharts, including:
 
-By default the UI will be served locally but actions will be deployed and served from Adobe I/O Runtime. To run your actions locally use the `aio app dev` option.
+Engagements over time (Line Charts).
 
-For more information on the difference between `aio app run` and `aio app dev`, see [here](https://developer.adobe.com/app-builder/docs/guides/development/#aio-app-dev-vs-aio-app-run)
+Geographic distribution (Countries and Cities tables).
 
-## Test & Coverage
+Referrer traffic mapping.
 
-- Run `aio app test` to run unit tests for ui and actions
-- Run `aio app test --e2e` to run e2e tests
+Device and Operating System breakdowns (Bar Charts and tables).
 
-## Deploy & Cleanup
+Technical Architecture
+Frontend: React, Recharts for data visualization, standard CSS for styling.
 
-- `aio app deploy` to build and deploy all actions on Runtime and static files to CDN
-- `aio app undeploy` to undeploy the app
+Backend: Node.js serverless action deployed to Adobe I/O Runtime. Handles chunked parallel requests to Bitly's API endpoints (/clicks, /scans, /image?format=png, etc.) to bypass rate limits and prevent frontend CORS issues.
 
-## Config
+Authentication: Utilizes the Workfront user's active IMS token passed via the shared context to securely query the Workfront API for custom field values.
 
-### `.env`
+Deployment & Cache Management
+Adobe Workfront heavily caches iframe extensions. To deploy updates and force a fresh build:
 
-You can generate this file using the command `aio app use`. 
-
-```bash
-# This file must **not** be committed to source control
-
-## please provide your Adobe I/O Runtime credentials
-# AIO_RUNTIME_AUTH=
-# AIO_RUNTIME_NAMESPACE=
-```
-
-### `app.config.yaml`
-
-- Main configuration file that defines an application's implementation. 
-- More information on this file, application configuration, and extension configuration 
-  can be found [here](https://developer.adobe.com/app-builder/docs/guides/configuration/#appconfigyaml)
-
-#### Action Dependencies
-
-- You have two options to resolve your actions' dependencies:
-
-  1. **Packaged action file**: Add your action's dependencies to the root
-   `package.json` and install them using `npm install`. Then set the `function`
-   field in `app.config.yaml` to point to the **entry file** of your action
-   folder. We will use `webpack` to package your code and dependencies into a
-   single minified js file. The action will then be deployed as a single file.
-   Use this method if you want to reduce the size of your actions.
-
-  2. **Zipped action folder**: In the folder containing the action code add a
-     `package.json` with the action's dependencies. Then set the `function`
-     field in `app.config.yaml` to point to the **folder** of that action. We will
-     install the required dependencies within that directory and zip the folder
-     before deploying it as a zipped action. Use this method if you want to keep
-     your action's dependencies separated.
-
-## Debugging in VS Code
-
-While running your local server (`aio app dev`), both UI and actions can be debugged. To do so follow the instructions [here](https://developer.adobe.com/app-builder/docs/guides/development/#debugging)
-
-## Typescript support for UI
-
-To use typescript use `.tsx` extension for react components and add a `tsconfig.json` 
-and make sure you have the below config added
-```
- {
-  "compilerOptions": {
-      "jsx": "react"
-    }
-  } 
-```
+Bash
+# Clear Parcel cache and deploy to Adobe I/O
+rm -rf dist .parcel-cache && aio app deploy
+Note: Ensure you disable the browser cache via the Network tab in Developer Tools and hard refresh Workfront after deploying to view the latest UI.
