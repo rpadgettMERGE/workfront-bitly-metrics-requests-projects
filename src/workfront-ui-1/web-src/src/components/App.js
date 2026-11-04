@@ -1,6 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { attach } from '@adobe/uix-guest';
+import { extensionId } from './Constants';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+// Safe storage access for cross-origin iframes
+const getStored = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const setStored = (key, val) => {
+  try {
+    localStorage.setItem(key, val);
+  } catch {
+    // Suppress partitioned storage access block
+  }
+};
 
 export default function App() {
   const [objID, setObjID] = useState(null);
@@ -21,10 +39,11 @@ export default function App() {
   const timelineScrollRef = useRef(null);
   const qrTimelineScrollRef = useRef(null);
 
-  useEffect(() => {
+    useEffect(() => {
     async function initUIX() {
       try {
-        const conn = await attach({ id: 'workfront-ui-1' });
+        // Attach using the matching extensionId
+        const conn = await attach({ id: extensionId });
 
         let extractedToken = null;
         let extractedHost = window.location.hostname;
@@ -37,7 +56,7 @@ export default function App() {
           const getVal = (key) => (typeof ctx?.get === 'function' ? ctx.get(key) : ctx?.[key]);
 
           const authObj = getVal('auth');
-          extractedToken = authObj?.imsToken || localStorage.getItem('wf_ims_token');
+          extractedToken = authObj?.imsToken || getStored('wf_ims_token');
           extractedHost = getVal('hostname') || extractedHost;
           extractedId = getVal('objID') || getVal('objectID');
           extractedCode = getVal('objCode') || 'OPTASK';
@@ -47,8 +66,8 @@ export default function App() {
           await new Promise((res) => setTimeout(res, 200));
         }
 
-        if (extractedToken) localStorage.setItem('wf_ims_token', extractedToken);
-        if (extractedHost) localStorage.setItem('wf_hostname', extractedHost);
+        if (extractedToken) setStored('wf_ims_token', extractedToken);
+        if (extractedHost) setStored('wf_hostname', extractedHost);
 
         if (!extractedToken) throw new Error('Missing IMS Token in Workfront session.');
         if (!extractedId) throw new Error('No Context ID found. Please open this tab from a Workfront Project or Issue.');

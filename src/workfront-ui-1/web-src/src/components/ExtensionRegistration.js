@@ -1,24 +1,29 @@
 import React, { useEffect } from 'react';
-import { Text } from "@adobe/react-spectrum";
-import { register } from "@adobe/uix-guest";
-import metadata from '../../../../app-metadata.json'; 
+import { register } from '@adobe/uix-guest';
+import metadata from '../../../../app-metadata.json';
+import { extensionId } from './Constants';
 
 export default function ExtensionRegistration() {
   useEffect(() => {
     const init = async () => {
-      // Inlined scope definition prevents bundler ReferenceError
-      const getSecondaryNavItems = () => [
-        {
-          id: "bitly-analytics-tab",
-          label: "Bitly Analytics",
-          url: "/index.html#/app", 
-        },
-      ];
+      const getSecondaryNavItems = () => {
+        // Preserves the /workfront-ui-1/ subpath dynamically
+        const targetUrl = new URL('#/app', window.location.href).href;
+
+        return [
+          {
+            id: 'bitly-analytics-tab',
+            label: 'Bitly Analytics',
+            url: targetUrl,
+          },
+        ];
+      };
 
       await register({
-        id: metadata.name, 
-        metadata, 
+        id: extensionId,
+        metadata,
         methods: {
+          id: extensionId, // Required by Workfront host to pair the iframe
           secondaryNav: {
             OPTASK: { getItems: getSecondaryNavItems },
             optask: { getItems: getSecondaryNavItems },
@@ -36,5 +41,5 @@ export default function ExtensionRegistration() {
     init().catch(console.error);
   }, []);
 
-  return <Text>IFrame for integration with Host (Workfront)...</Text>;
+  return <div>Registering extension with Workfront...</div>;
 }

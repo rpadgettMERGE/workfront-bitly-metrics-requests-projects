@@ -229,8 +229,8 @@ async function main(params) {
 
     if (isProject) {
       const queryParams = [
-        encodeURIComponent('DE:Bitly Shortlink ID_Mod') + '=notblank',
-        'OR:1:' + encodeURIComponent('DE:Bitly QR Code ID_Mod') + '=notblank',
+        encodeURIComponent('DE:CVS_Shortlink_ID_Mod') + '=notblank',
+        'OR:1:' + encodeURIComponent('DE:CVS_QR_Code_ID_Mod') + '=notblank',
         encodeURIComponent('fields') + '=' + encodeURIComponent('parameterValues,name,referenceNumber,project:name'),
         '$$LIMIT=100'
       ].join('&');
@@ -241,8 +241,8 @@ async function main(params) {
       
       const tasks = (await wfResponse.json()).data || [];
       availableRequests = tasks.reduce((acc, task) => {
-        const rawLink = task.parameterValues?.['DE:Bitly Shortlink ID'] || task.parameterValues?.['Bitly Shortlink ID'];
-        const rawQr = task.parameterValues?.['DE:Bitly QR Code ID'] || task.parameterValues?.['Bitly QR Code ID'];
+        const rawLink = task.parameterValues?.['DE:CVS_Shortlink_ID'] || task.parameterValues?.['Bitly Shortlink ID'];
+        const rawQr = task.parameterValues?.['DE:CVS_QR_Code_ID'] || task.parameterValues?.['Bitly QR Code ID'];
         
         if (rawLink || rawQr) {
           acc.push({
@@ -275,8 +275,8 @@ async function main(params) {
       if (!wfResponse.ok) throw new Error(`Workfront API error: ${wfResponse.statusText}`);
 
       const task = (await wfResponse.json()).data || {};
-      const rawLink = task.parameterValues?.['DE:Bitly Shortlink ID'] || task.parameterValues?.['Bitly Shortlink ID'];
-      const rawQr = task.parameterValues?.['DE:Bitly QR Code ID'] || task.parameterValues?.['Bitly QR Code ID'];
+      const rawLink = task.parameterValues?.['DE:CVS_Shortlink_ID'] || task.parameterValues?.['Bitly Shortlink ID'];
+      const rawQr = task.parameterValues?.['DE:CVS_QR_Code_ID'] || task.parameterValues?.['Bitly QR Code ID'];
 
       if (!rawLink && !rawQr) return { statusCode: 200, body: { hasLink: false, message: 'No Bitly custom fields set on this Request.' }};
 

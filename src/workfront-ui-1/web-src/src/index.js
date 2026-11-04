@@ -1,13 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
 import ExtensionRegistration from './components/ExtensionRegistration';
 
-// Capture both the Project/Issue view and the new Global Admin view (with or without the slash)
-const hash = window.location.hash;
-const isAppView = hash === '#app' || hash === '#/app' || hash === '#admin' || hash === '#/admin';
+function Root() {
+  const [isAppView, setIsAppView] = useState(() => {
+    const hash = window.location.hash || '';
+    return hash.includes('app') || hash.includes('admin');
+  });
 
-ReactDOM.render(
-  isAppView ? <App /> : <ExtensionRegistration />,
-  document.getElementById('root')
-);
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash || '';
+      setIsAppView(hash.includes('app') || hash.includes('admin'));
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  return isAppView ? <App /> : <ExtensionRegistration />;
+}
+
+ReactDOM.render(<Root />, document.getElementById('root'));

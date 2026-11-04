@@ -1,3 +1,5 @@
-module.exports = {
-  extensionId: 'wf-bitly-analytics'
-}
+export const extensionId = 'wf-bitly-analytics';
+
+export default {
+  extensionId,
+};
